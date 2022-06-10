@@ -10,7 +10,7 @@ import {GestionAccessControl} from "./model/gestion-access-control";
 import {GestionAccessControlService} from "./service/gestionAccessControl.service";
 import {InterventionFonctionalite} from "./model/intervention-fonctionalite";
 import {InterventionFonctionalitesService} from "./service/interventionFonctionalites.service";
-import {pipe} from "rxjs";
+import {concat, concatMap, mergeMap, mergeWith, pipe} from "rxjs";
 export interface Task {
   name: string;
   completed: boolean;
@@ -45,42 +45,14 @@ export class AppComponent {
       supprimer_intervention : new FormControl('')
     })
   });
+  private result: InterventionFonctionalite;
 
 
   constructor(private clientService: ClientService,
   private roleService: RoleService,
   private gestionAccessControlService : GestionAccessControlService,
   private interventionFonctionaliteService: InterventionFonctionalitesService,){}
-  client = [
-    {id: 1, select: false, name:'Ajouter client'},
-    {id: 2, select: true, name:'Modifier client'},
-    {id: 3, select: true, name:'Supprimer client'},
-  ];
-  intervention = [
-    {id: 1, select: false, name:'Ajouter intervention'},
-    {id: 2, select: true, name:'Modifier intervention'},
-    {id: 3, select: true, name:'Supprimer intervention'},
-  ];
-  onChangeClient($event) {
-    const id = $event.target.value;
-    const isChecked = $event.target.checked;
-    this.client = this.client.map((d) => {
-      if (d.id == id) {
-        d.select = isChecked;
-        this.parentSelectorClient = false;
-        return d;
-      }
-      //negative one
-      if (id == -1) {
-        d.select = this.parentSelectorClient;
-        return d;
-      }
-      return d;
-    });
-    console.log(this.client);
-  }
-
-/*  public onAddRole(addForm: FormGroup): void {
+ public onAddRole(addForm: FormGroup): void {
     console.log("Role form ",addForm.value);
     //Functionality Client
     this.clientFonctionalites.ajouter_client = this.roleForm.value.client.ajouter_client;
@@ -98,14 +70,6 @@ export class AppComponent {
         this.gestion.clientFonctionalite = resultat;
         console.log("clientFonctionalite",this.gestion.clientFonctionalite);
         //Add idClientFonctionalite to Gestion
-        this.gestionAccessControlService.addGestion(this.gestion).subscribe(gestionAccessControl =>{
-        //this.gestion = gestionAccessControl;
-        this.role.gestionAccessControl = gestionAccessControl;
-        console.log("ahlan",gestionAccessControl);
-
-      }
-      );
-
       console.log("succes",resultat);
     },error => {
       console.log("error");
@@ -116,7 +80,6 @@ export class AppComponent {
       this.gestion.interventionFonctionalite = resultat2;
         //Add idInterventionFonctionalite to Gestion
         //Role
-        this.role = {};
         this.role.nom = this.roleForm.value.nom ;
         this.role.description = this.roleForm.value.description;
         console.log("ROLE",this.role);
@@ -137,54 +100,40 @@ export class AppComponent {
       }
     );
 
-  }*/
+  }
 
-  public onAddRole(addForm: FormGroup): void {
+  /* public onAddRole(addForm: FormGroup): void {
     //Functionality Client
     this.clientFonctionalites.ajouter_client = this.roleForm.value.client.ajouter_client;
     this.clientFonctionalites.modifier_client = this.roleForm.value.client.modifier_client;
     this.clientFonctionalites.supprimer_client = this.roleForm.value.client.supprimer_client;
-    console.log("client fonctionalite",this.clientFonctionalites)
+    console.log("client fonctionalite", this.clientFonctionalites)
     //Functionality Intervention
     this.interventionFonctionalite.ajouter_intervention = this.roleForm.value.intervention.ajouter_intervention;
     this.interventionFonctionalite.modifier_intervention = this.roleForm.value.intervention.modifier_intervention;
     this.interventionFonctionalite.supprimer_intervention = this.roleForm.value.intervention.supprimer_intervention;
-    console.log("Intervention fonctionalite",this.interventionFonctionalite)
-    this.role.nom = this.roleForm.value.nom ;
+    console.log("Intervention fonctionalite", this.interventionFonctionalite)
+    this.role.nom = this.roleForm.value.nom;
     this.role.description = this.roleForm.value.description;
-    console.log("ROLE",this.role);
-    //Add Client Functionality
-    this.clientService.addClient(this.clientFonctionalites).subscribe(resultat => {
-      this.gestion.clientFonctionalite = resultat;
-      console.log("clientFonctionalite", this.gestion.clientFonctionalite);
-      //Add idClientFonctionalite to Gestion
-      this.gestionAccessControlService.addGestion(this.gestion).subscribe(gestionAccessControl => {
-          //this.gestion = gestionAccessControl;
-          this.role.gestionAccessControl = gestionAccessControl;
-          console.log("ahlan", gestionAccessControl);
+    console.log("ROLE", this.role);
 
-        }
-      );
+    const interventionFunc$ = this.interventionFonctionaliteService.addInterventionFonctionalite(this.interventionFonctionalite);
 
-      console.log("succes", resultat);
-    });
-   const gestionSubscription = this.gestionAccessControlService.addGestion(this.gestion).subscribe(gestionAccessControl => {
-        //this.gestion = gestionAccessControl;
-        this.role.gestionAccessControl = gestionAccessControl;
-        console.log("ahlan", gestionAccessControl);
+    const clientFunc$ = this.clientService.addClient(this.clientFonctionalites).pipe(
+      mergeMap((clientF: ClientFonctionalite) => {
+        this.clientFonctionalites = clientF;
+        console.warn('clienF', this.clientFonctionalites);
+        return interventionFunc$;
+      })
+    ).subscribe(res => {
+      this.result =res;
+        console.warn('result',this.result);
 
       }
     );
-    const rolSubscription =  this.roleService.addRole(this.role).subscribe(roleResultat =>{
-      this.role = roleResultat;
-      }
-    );
-    const clientFuncSubscription = this.clientService.addClient(this.clientFonctionalites).subscribe(clientFonctionalite =>{
-        this.clientFonctionalites = clientFonctionalite;
-    }
 
-    )
   }
+*/
 
 }
 
